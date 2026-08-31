@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Bootstrap installer for AI Workbench Workflow v0.2 public distribution."""
 from __future__ import annotations
-import argparse, base64, io, lzma, subprocess, sys, tarfile, tempfile
+import argparse, base64, hashlib, io, lzma, subprocess, sys, tarfile, tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PARTS = sorted(HERE.glob('workbench-workflow-v0.2.0.part*'))
+PACKAGE_SHA256 = '41cb3107e4972d6e6ecae85a0498b5b0052d8bcfe8b25898806e7ec80d74fc0f'
 
 
 def extract_source(dest: Path) -> None:
@@ -14,6 +15,9 @@ def extract_source(dest: Path) -> None:
     encoded = ''.join(p.read_text(encoding='ascii').strip() for p in PARTS)
     try:
         compressed = base64.b64decode(encoded, validate=True)
+        actual = hashlib.sha256(compressed).hexdigest()
+        if actual != PACKAGE_SHA256:
+            raise ValueError(f'package SHA256 mismatch: expected {PACKAGE_SHA256}, got {actual}')
         tar_bytes = lzma.decompress(compressed)
     except Exception as exc:
         raise SystemExit(f'Package integrity/decode failure: {exc}') from exc
