@@ -1,33 +1,31 @@
 # AI Workbench Workflow
 
-A Codex-native software-development workflow for projects that want **durable product authority + deterministic execution + bounded specialist agents** without adopting a full orchestration framework.
-
-> **Public distribution note:** this repository's one-command download ships the complete v0.2 source tree in `workbench-workflow.bundle.json`. `install.py` verifies every bundled file, extracts it to a temporary directory, and runs the canonical installer. Use `python3 install.py --extract-source ./source` if you want the full source tree expanded for inspection.
+A Codex-native software-development workflow for projects that want **durable product authority + deterministic execution + bounded specialist agents** without adopting a full distributed orchestration framework.
 
 Product hierarchy:
 
 **North → Bird → Wing → Feather → Tasks**
 
-The hierarchy defines what the product means. The workflow runtime decides where execution is, which agent is eligible to run next, what human gate blocks progress, and how review failures route upstream.
+The hierarchy defines what the product means. The runtime decides where execution is, which agent is eligible to run next, what human gate blocks progress, and how review failures route upstream.
 
-## What changed in v0.2
+## v0.2
 
 v0.1 was mostly a strong prompt protocol with a state validator. v0.2 adds the missing engine layer:
 
-- declarative `workflow/definition.json` rather than stage routing hard-coded only in prose;
-- project overlays under `workflow/overlays/`;
-- one durable runtime record per execution under `.workbench-workflow/runs/<run-id>/`;
-- append-only event journal + crash-repairable snapshots;
-- atomic writes and per-run process locks;
-- deterministic `dispatch`, `record-result`, and `record-review` commands;
+- declarative workflow definition + project overlays;
+- durable per-run execution state and resume;
+- append-only event journal with crash-repairable atomic snapshots;
+- deterministic `dispatch`, `record-result`, and `record-review`;
+- actual Codex custom agents and JIT step files;
 - structured agent/reviewer result contracts;
-- interactive human-only approval commands;
+- interactive human-only approval gates;
 - frozen approved-intent hashes for Wing/Feather contracts;
-- BAD_SPEC / INTENT_GAP / CORRECT_COURSE rollback-before-reroute semantics;
-- five allowed remediation loops, blocking on the sixth;
-- local baseline/Feather commit boundaries for reliable rollback;
-- installer + `doctor` command so a fresh download can be adopted immediately;
-- multi-run `new / list / use` support.
+- `PATCH / BAD_SPEC / INTENT_GAP / CORRECT_COURSE / DEFER` review routing;
+- rollback-before-reroute for upstream review failures;
+- bounded remediation loops;
+- baseline/commit boundaries for deterministic rollback;
+- installer + `doctor` checks;
+- multiple durable runs with `new / list / use`.
 
 ## Architecture
 
@@ -41,11 +39,11 @@ North → Bird → Wing → Feather → Tasks
         durable specs / UX / architecture
                     │
                     ▼
-         workflow/definition.json
+         declarative workflow definition
             + optional overlays
                     │
                     ▼
-      Workbench zero-dependency runtime
+       deterministic local runtime
                     │
         ┌───────────┼───────────┐
         ▼           ▼           ▼
@@ -61,9 +59,9 @@ North → Bird → Wing → Feather → Tasks
        deterministic routing
 ```
 
-The parent Codex thread is the **Control Tower**. It does not invent orchestration. It asks the runtime what stage is active, loads one JIT step, invokes the configured custom agent(s), and hands structured results back to the runtime.
+The parent Codex thread is the **Control Tower**. It does not invent orchestration. It asks the runtime what stage is active, loads one JIT step, invokes only the configured worker(s), and hands structured results back to the runtime.
 
-## Install into any repository
+## Install immediately
 
 Requires Python 3.11+ and a current Codex release with project custom-agent/skill support.
 
@@ -71,12 +69,17 @@ Requires Python 3.11+ and a current Codex release with project custom-agent/skil
 git clone https://github.com/bruceclng-cloud/ai-workbench-workflow.git
 cd ai-workbench-workflow
 python3 install.py /path/to/your/project
+```
 
-# optional: expand the complete source package for inspection
+The public repository ships the complete tested v0.2 source tree as seven compact text package parts (`workbench-workflow-v0.2.0.part*`). The bootstrap installer reassembles them, verifies SHA-256, safely extracts the source, and runs the canonical installer. Nothing else has to be downloaded.
+
+To inspect the complete source before installing:
+
+```bash
 python3 install.py --extract-source ./source
 ```
 
-The installer merges the workflow block into an existing `AGENTS.md`, copies the Codex agents/skill/runtime definition, adds runtime paths to `.gitignore`, and runs `doctor`. It refuses to overwrite conflicting workflow files unless `--force` is supplied.
+The canonical installer merges the marked workflow block into an existing `AGENTS.md`, copies the Codex agents/skill/runtime definition, preserves existing project instructions, adds runtime paths to `.gitignore`, and runs `doctor`. It refuses conflicting workflow files unless `--force` is explicitly supplied.
 
 Then, from the adopting project:
 
@@ -90,27 +93,24 @@ Or tell the parent Codex session to use `$workbench-workflow`.
 ## Core commands
 
 ```bash
-# installation/runtime health
+# health
 python3 .agents/skills/workbench-workflow/scripts/workflow.py doctor
 
-# start/switch durable runs
+# durable runs
 python3 .agents/skills/workbench-workflow/scripts/workflow.py new --wing WING-UX-001
 python3 .agents/skills/workbench-workflow/scripts/workflow.py list
 python3 .agents/skills/workbench-workflow/scripts/workflow.py use <run-id>
 
-# state + deterministic next dispatch
+# state + next dispatch
 python3 .agents/skills/workbench-workflow/scripts/workflow.py show
 python3 .agents/skills/workbench-workflow/scripts/workflow.py validate
 python3 .agents/skills/workbench-workflow/scripts/workflow.py dispatch
 
-# Control-Tower transition
-python3 .agents/skills/workbench-workflow/scripts/workflow.py transition route_wing
-
-# agent result ingestion
+# worker result ingestion
 python3 .agents/skills/workbench-workflow/scripts/workflow.py record-result result.json
 python3 .agents/skills/workbench-workflow/scripts/workflow.py record-review blind.json edge.json verify.json
 
-# human-only gate (must be run interactively by the human)
+# human-only gate
 python3 .agents/skills/workbench-workflow/scripts/workflow.py approve human_approve_ux
 ```
 
@@ -124,23 +124,21 @@ Every verified finding is one of:
 - `CORRECT_COURSE` — upstream Wing/design/product assumption needs reconsideration.
 - `DEFER` — real but not caused/owned by the active Feather.
 
-The runtime uses precedence `CORRECT_COURSE > INTENT_GAP > BAD_SPEC > PATCH > DEFER/PASS`.
+The runtime uses precedence:
 
-For the three upstream categories, implementation must be rolled back to the recorded baseline before the runtime routes upstream. This prevents a bad implementation from becoming accidental authority.
+`CORRECT_COURSE > INTENT_GAP > BAD_SPEC > PATCH > DEFER/PASS`
+
+For upstream categories, implementation must be rolled back to the recorded baseline before the runtime routes upstream. Bad implementation therefore does not become accidental authority.
 
 ## Human authority
 
-Human-only events are rejected by the normal transition command. The approval command requires an interactive terminal and an exact confirmation phrase.
+Human-only events are rejected by the ordinary transition path. Approval requires an interactive terminal and exact confirmation phrase. This is an anti-accident workflow boundary, not an OS security sandbox against a process that already controls the workstation.
 
-This prevents ordinary autonomous Codex runs from silently clicking through product gates. It is **not a security sandbox** against an agent/process with full OS control; use OS/account permissions for security-sensitive boundaries.
-
-Technical PASS never equals product acceptance.
+Technical PASS never equals product acceptance. Human rejection overrides prior technical verification.
 
 ## Runtime state
 
-`.workbench-workflow/` is local runtime data and should remain gitignored.
-
-Each run contains:
+Local runtime data is gitignored:
 
 ```text
 .workbench-workflow/runs/<run-id>/
@@ -148,25 +146,23 @@ Each run contains:
   events.jsonl
 ```
 
-`events.jsonl` is append-only and stores the post-event state. `state.json` is an atomically replaced snapshot. If an interruption lands between those writes, the next load repairs the snapshot from the event journal.
-
-`workflow/status.json` is only a materialized active-run view and is gitignored.
+`events.jsonl` is append-only and stores post-transition state. `state.json` is an atomically replaced snapshot and can repair from the journal after an interrupted write.
 
 ## Influences
 
-The design borrows proven ideas rather than vendoring another framework:
+The design adapts proven ideas rather than vendoring another framework:
 
-- BMAD: JIT step files, bounded Build units, frozen human intent, upstream review diagnosis, UX-before-build, Correct Course.
-- GitHub Spec Kit: declarative workflow definition, validation, durable run/resume model, control-flow mindset, overlays.
-- OpenSpec: keep human-facing process understandable and artifact-driven.
-- CrewAI/LangGraph/agent runtimes: separate workflow definition from execution and workers; checkpoint/interrupt mental model.
+- **BMAD** — JIT step files, bounded Build units, frozen human intent, upstream review diagnosis, UX-before-build, Correct Course.
+- **GitHub Spec Kit** — declarative workflow definition, validation, durable run/resume model, overlays and control-flow mindset.
+- **OpenSpec** — keep the human-facing process understandable and artifact-driven.
+- **CrewAI / LangGraph / agent runtimes** — separate workflow definition, execution runtime and replaceable workers; use checkpoint/interrupt thinking.
 
-No upstream implementation code is vendored here.
+No upstream framework source code is vendored here.
 
-## Status
+## Scope
 
-v0.2 is still intentionally small: it is a **Codex-native deterministic workflow runtime**, not a distributed agent platform. It does not provide queues, remote workers, distributed locking, cloud tracing, or model-provider abstraction yet. The file/agent/state boundaries are designed so those can be added later without changing North/Bird/Wing/Feather semantics.
+v0.2 is intentionally a **Codex-native deterministic workflow runtime**, not a distributed agent platform. It does not yet provide remote queues, distributed locks, cloud tracing, provider-neutral worker execution, or cryptographic human identity. Its boundaries are designed so those can be added later without changing North/Bird/Wing/Feather semantics.
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE) and [`NOTICE.md`](NOTICE.md).
+MIT. See `LICENSE` and `NOTICE.md`.
