@@ -6,7 +6,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PARTS = sorted(HERE.glob('workbench-workflow-v0.2.0.part*'))
-PACKAGE_SHA256 = '41cb3107e4972d6e6ecae85a0498b5b0052d8bcfe8b25898806e7ec80d74fc0f'
+PACKAGE_SHA256 = 'e6af624ec5296b7a18e118632f663cb5c81be8d365ebe09da80ba88a084efa2e'
 
 
 def extract_source(dest: Path) -> None:
