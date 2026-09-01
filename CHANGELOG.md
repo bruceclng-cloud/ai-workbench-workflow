@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Changed current repository development from MIT to PolyForm Strict License 1.0.0 for stronger control over redistribution and derivative works.
+- Added explicit legacy-license notice preserving historical MIT grants for already-published releases.
+- Added patent/disclosure guidance without making any false `patent pending` claim.
+- Added unregistered project-mark policy, commercial licensing policy, and protected contribution policy.
+- Strengthened copyright and IP notices.
+
 ## 0.2.0
 
 - Added declarative workflow definition and overlay layer.
