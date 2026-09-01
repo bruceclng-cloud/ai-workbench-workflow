@@ -71,9 +71,11 @@ cd ai-workbench-workflow
 python3 install.py /path/to/your/project
 ```
 
-The public repository ships the complete tested v0.2 source tree as seven compact text package parts (`workbench-workflow-v0.2.0.part*`). The bootstrap installer reassembles them, verifies SHA-256, safely extracts the source, and runs the canonical installer. Nothing else has to be downloaded.
+The public repository currently ships the complete tested v0.2 source tree as seven compact text package parts (`workbench-workflow-v0.2.0.part*`). Those v0.2.0 package artifacts were previously published under MIT and remain a **legacy MIT release**. See `LEGACY-LICENSE.md`.
 
-To inspect the complete source before installing:
+Current repository development is offered under **PolyForm Strict License 1.0.0** unless a file or historical release explicitly says otherwise. This means source is available for permitted noncommercial uses, but redistribution and derivative works are not granted by the current license. Commercial or redistribution rights require a separate license from the copyright owner.
+
+To inspect the complete legacy v0.2.0 source before installing:
 
 ```bash
 python3 install.py --extract-source ./source
@@ -163,6 +165,20 @@ No upstream framework source code is vendored here.
 
 v0.2 is intentionally a **Codex-native deterministic workflow runtime**, not a distributed agent platform. It does not yet provide remote queues, distributed locks, cloud tracing, provider-neutral worker execution, or cryptographic human identity. Its boundaries are designed so those can be added later without changing North/Bird/Wing/Feather semantics.
 
+## Intellectual property
+
+Copyright © 2026 Bruce Ng. All rights not expressly granted by the applicable license are reserved.
+
+`AI Workbench Workflow™` is used as an unregistered project mark. The ™ symbol does not represent a registered trademark. See `TRADEMARKS.md`.
+
+No statement in this repository should be read as a claim that a patent application has been filed or that any feature is patented. Potential patent rights, prior public disclosure, and filing considerations are described in `PATENTS.md`. Novel future implementation details should be kept private until patent strategy is resolved.
+
+External contributions are not accepted by default because mixed copyright or patent ownership can complicate later licensing and protection. See `CONTRIBUTING.md`.
+
 ## License
 
-MIT. See `LICENSE` and `NOTICE.md`.
+Current repository development: **PolyForm Strict License 1.0.0**. See `LICENSE`.
+
+Legacy releases already published under MIT — including the v0.2.0 packaged source presently retained for reproducibility — remain available under the MIT terms that applied when they were distributed. Those prior permissions cannot practically be clawed back from recipients. See `LEGACY-LICENSE.md`.
+
+Commercial, redistribution, derivative-work, OEM, hosted-service, or other rights outside the current license require a separate written license. See `COMMERCIAL-LICENSE.md`.
