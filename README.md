@@ -4,7 +4,9 @@ A Codex-native software-development workflow for projects that want **durable pr
 
 Product hierarchy:
 
-**North → Bird → Wing → Feather → Tasks**
+**North → Bird → Wing → Feather**
+
+A **Feather is the terminal executable unit**. It contains the complete bounded execution contract and takes action directly. Implementation details may be written inside a Feather as ordinary steps or checklists, but they are not another hierarchy level, do not receive separate IDs/lifecycles/documents, and must not be promoted into a `Task`/`Tasks` workflow concept.
 
 The hierarchy defines what the product means. The runtime decides where execution is, which agent is eligible to run next, what human gate blocks progress, and how review failures route upstream.
 
@@ -33,7 +35,7 @@ v0.1 was mostly a strong prompt protocol with a state validator. v0.2 adds the m
 Human product authority
         │
         ▼
-North → Bird → Wing → Feather → Tasks
+North → Bird → Wing → Feather
                     │
                     ▼
         durable specs / UX / architecture
@@ -72,6 +74,8 @@ python3 install.py /path/to/your/project
 ```
 
 The public repository currently ships the complete tested v0.2 source tree as seven compact text package parts (`workbench-workflow-v0.2.0.part*`). Those v0.2.0 package artifacts were previously published under MIT and remain a **legacy MIT release**. See `LEGACY-LICENSE.md`.
+
+**Authority note:** the retained v0.2.0 release artifact may contain historical wording that treated implementation detail as a `Task`/`Tasks` concept. That wording is superseded. The current workflow hierarchy ends at Feather. Do not use legacy package wording as authority for new project structure.
 
 Current repository development is offered under **PolyForm Strict License 1.0.0** unless a file or historical release explicitly says otherwise. This means source is available for permitted noncommercial uses, but redistribution and derivative works are not granted by the current license. Commercial or redistribution rights require a separate license from the copyright owner.
 
