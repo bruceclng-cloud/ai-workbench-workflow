@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Restored the canonical hierarchy to **North → Bird → Wing → Feather**. Feather is the terminal executable unit; implementation detail inside a Feather is not a separate workflow level or artifact type.
+- Added `WORKFLOW.md` as the current human-readable workflow authority and explicit Wing-stop rule.
+- Marked historical `Task`/`Tasks` wording in the retained v0.2.0 package as superseded rather than rewriting the released artifact.
 - Changed current repository development from MIT to PolyForm Strict License 1.0.0 for stronger control over redistribution and derivative works.
 - Added explicit legacy-license notice preserving historical MIT grants for already-published releases.
 - Added patent/disclosure guidance without making any false `patent pending` claim.
